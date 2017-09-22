@@ -7,12 +7,13 @@ var fs = require('fs');
 var XLSX = require('xlsx');
 var cron = require('node-cron');
 
-console.log('Running CronJob');
+console.log('Starting CronJob...');
 cron.schedule('*/20 * * * * *', function(){
   importData();
   xlsToTempTable();
   tempTableToMaintenix()
-  console.log('running a task every 24 hours');
+  console.log('Running task every 24 hours');
+  writeLog('Running task every 24 hours');
 });
 
 function importData() {
@@ -20,6 +21,7 @@ function importData() {
     if (error){ throw error;}
     if (results[0]==undefined) {
       console.log('Creating Table maintenix');
+      writeLog('Creating Table maintenix');
       var queryCreateTable =
       'CREATE TABLE `maintenix` (\
         `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,\
@@ -45,9 +47,11 @@ function importData() {
       mysqlcon.query(queryCreateTable, function (error, results, fields) {
         if (error) throw error;
         console.log('Table maintenix created successfully');
+        writeLog('Table maintenix created successfully');
       })
     } else {
       console.log('Table maintenix already created, proceding to load data from excel file');
+      writeLog('Table maintenix already created, proceding to load data from excel file');
     }
   });
 }
@@ -86,6 +90,8 @@ function xlsToTempTable() {
   })
   .on('result', function(result) {
     console.log('Droped Table tempTable');
+    writeLog('Droped Table tempTable');
+
   })
 
   var createTable = mysqlcon.query(queryCreate);
@@ -95,6 +101,7 @@ function xlsToTempTable() {
   })
   .on('result', function(result) {
     console.log('Created new Table tempTable');
+    writeLog('Created new Table tempTable');
   })
   var obj = xlsx.parse(globals.globals.EXCELPATH);
   var rows = [];
@@ -108,13 +115,17 @@ function xlsToTempTable() {
   for (var i = 0; i < rows.length; i++) {
     writeStr += rows[i].join(",") + "\n";
   }
-  fs.writeFile(globals.globals.CSVPATH, writeStr, function(err) {
+  var date = new Date();
+  date = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
+  var csvPath = globals.globals.EXCELPATH.replace(/\.[^/.]+$/, "")+date+'.csv';
+  fs.writeFile(csvPath, writeStr, function(err) {
     if (err) {
       return console.log(err);
     }
-    console.log(globals.globals.CSVPATH + ' converted from xls.');
+    console.log('Converted CSV file '+csvPath);
+    writeLog('Converted CSV file '+csvPath);
   });
-  var queryLoadCSV = 'LOAD DATA LOCAL INFILE \''+globals.globals.CSVPATH+'\' INTO TABLE tempTable FIELDS TERMINATED BY \',\' ENCLOSED BY \'"\' LINES TERMINATED BY \'\n\' IGNORE 1 LINES'
+  var queryLoadCSV = 'LOAD DATA LOCAL INFILE \''+csvPath+'\' INTO TABLE tempTable FIELDS TERMINATED BY \',\' ENCLOSED BY \'"\' LINES TERMINATED BY \'\n\' IGNORE 1 LINES'
   var loadCSV = mysqlcon.query(queryLoadCSV);
   loadCSV.on('error', function(err) {
     if (err)
@@ -122,6 +133,7 @@ function xlsToTempTable() {
   })
   .on('result', function(result) {
     console.log('Data loaded successfully into table tempTable');
+    writeLog('Data loaded successfully into table tempTable');
   })
   //ADD COLUMN aircraft_id
   var addAircraftIdColumn = mysqlcon.query('ALTER TABLE tempTable ADD COLUMN aircraft_id VARCHAR(255) AFTER AC;');
@@ -131,6 +143,7 @@ function xlsToTempTable() {
   })
   .on('result', function(result) {
     console.log('Added aircraft_id column successfully');
+    writeLog('Added aircraft_id column successfully');
   })
   // Add ids to aircraft_id
   aircraftsIds = _.uniq(aircraftsIds);
@@ -146,9 +159,9 @@ function xlsToTempTable() {
       })
       .on('result', function(result) {
         console.log('Added Aircraft'+value+ ' successfully');
+        writeLog('Added Aircraft'+value+ ' successfully');
       })
     });
-    //
     //ADD COLUMN base_id
     var addBaseIdColumn = mysqlcon.query('ALTER TABLE tempTable ADD COLUMN base_id INT AFTER LOCATION;');
     addAircraftIdColumn.on('error', function(err) {
@@ -157,6 +170,8 @@ function xlsToTempTable() {
     })
     .on('result', function(result) {
       console.log('Added base_id column successfully');
+      writeLog('Added base_id column successfully');
+
     })
     // Add ids to base_id
     baseIds = _.uniq(baseIds);
@@ -173,6 +188,8 @@ function xlsToTempTable() {
         })
         .on('result', function(result) {
           console.log('Added Base '+value+ ' successfully');
+          writeLog('Added Base '+value+ ' successfully');
+
         })
       });
       //ADD COLUMN part_id
@@ -183,6 +200,7 @@ function xlsToTempTable() {
       })
       .on('result', function(result) {
         console.log('Added part_id column successfully');
+        writeLog('Added part_id column successfully');
       })
       //ADD COLUMN request_date_aog
       var addRequestDateAogColumn = mysqlcon.query('ALTER TABLE aog_development.tempTable \
@@ -194,6 +212,7 @@ function xlsToTempTable() {
       })
       .on('result', function(result) {
         console.log('Added request_date_aog column successfully');
+        writeLog('Added request_date_aog column successfully');
       })
       // Add ids to part_id
       partIds = _.uniq(partIds);
@@ -211,6 +230,8 @@ function xlsToTempTable() {
           })
           .on('result', function(result) {
             console.log('Added Part N° '+value.replace('"', '')+ ' successfully');
+            writeLog('Added Part N° '+value.replace('"', '')+ ' successfully');
+
           })
         });
       };
@@ -220,15 +241,15 @@ function xlsToTempTable() {
         var date = new Date(+start + Math.random() * (end - start));
         var hour = startHour + Math.random() * (endHour - startHour) | 0;
         date.setHours(hour);
-        console.log('date', date);
         return moment(date).format("YYYY-MM-DD HH:mm:ss");;
       }
+
       function tempTableToMaintenix() {
-        var queryLoadData = 'INSERT INTO `aog_development`.`maintenix` (`AC`,`aircraft_id`,`LOCATION`,`base_id`,`PART_REQUEST`,`request_date_aog`,`PART_REQUEST_STATUS`,`PRIORITY_CD`,\
+        var queryLoadData = 'INSERT INTO `maintenix` (`AC`,`aircraft_id`,`LOCATION`,`base_id`,`PART_REQUEST`,`request_date_aog`,`PART_REQUEST_STATUS`,`PRIORITY_CD`,\
           `PART_NO`,`part_id`,`TASK_BARCODE`,`TASK_NAME`,`TASK_STATUS`,`WP_BARCODE`,`WP_NAME`,`WP_STATUS`,`WORK_TYPE_CD`)\
           SELECT `AC`,`aircraft_id`,`LOCATION`,`base_id`,`PART_REQUEST`,`request_date_aog`,`PART_REQUEST_STATUS`,`PRIORITY_CD`,`PART_NO`,`part_id`,`TASK_BARCODE`,\
           `TASK_NAME`,`TASK_STATUS`,`WP_BARCODE`,`WP_NAME`,`WP_STATUS`,`WORK_TYPE_CD` \
-          FROM aog_development.`tempTable`\
+          FROM `tempTable`\
           ON DUPLICATE KEY UPDATE `maintenix`.`AC`=`tempTable`.`AC`,`maintenix`.`aircraft_id`=`tempTable`.`aircraft_id`,`maintenix`.`LOCATION`=`tempTable`.`LOCATION`,\
           `maintenix`.`base_id`=`tempTable`.`base_id`,`maintenix`.`PART_REQUEST`=`tempTable`.`PART_REQUEST`,`maintenix`.`request_date_aog`=`tempTable`.`request_date_aog`,\
           `maintenix`.`PART_REQUEST_STATUS`=`tempTable`.`PART_REQUEST_STATUS`,`maintenix`.`PRIORITY_CD`=`tempTable`.`PRIORITY_CD`,`maintenix`.`PART_NO`=`tempTable`.`PART_NO`,\
@@ -238,5 +259,17 @@ function xlsToTempTable() {
           mysqlcon.query(queryLoadData, function (error, results, fields) {
             if (error) throw error;
             console.log('Data loaded into table maintenix successfully');
+            writeLog('Data loaded into table maintenix successfully');
           })
+        }
+
+        function writeLog(newLine){
+          var date = new Date();
+          date = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
+          var csvPath = globals.globals.EXCELPATH.replace(/\.[^/.]+$/, "")+date+'.csv';
+          var logPath = csvPath.replace(/\.[^/.]+$/, "")+'.txt'
+          newLine+='\n';
+          fs.appendFile(path.resolve('xls_csv', logPath), newLine, function (err) {
+            if (err) throw err;
+          });
         }

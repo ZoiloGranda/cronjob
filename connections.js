@@ -17,7 +17,7 @@ module.exports.connections = {
       adapter: 'sails-mysql',
       host: '0.0.0.0',
       user: 'root',
-      port:'3307',
+      port:'3306',
       password: '12345',
       database: 'aog_development'
     }

@@ -1,4 +1,7 @@
-# README #
+CronJob in Nodejs to convert .xls file to .csv and load the data to the database
 
-
-### aog_cronjob_maintenix ###
+Usage:
+1) npm install
+2) Add database connection options in the connections.js file
+3) Set EXCELPATH in the globals.js file
+4) Run node job.js
