@@ -1,0 +1,11 @@
+Running task every 24 hours
+Converted CSV file /Users/mugiwara/Workspace/agence/cron-job/xls_csv/AOG_WP_V3 25-09-20172017-9-26.csv
+Droped Table tempTable
+Created new Table tempTable
+Data loaded successfully into table tempTable
+Running task every 24 hours
+Converted CSV file /Users/mugiwara/Workspace/agence/cron-job/xls_csv/AOG_WP_V3 25-09-20172017-9-26.csv
+Droped Table tempTable
+Created new Table tempTable
+Data loaded successfully into table tempTable
+Data loaded into table maintenix successfully
