@@ -115,7 +115,7 @@ function xlsToTempTable() {
   }
   var date = new Date();
   date = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
-  var csvPath = globals.globals.EXCELPATH.replace(/\.[^/.]+$/, "")+date+'.csv';
+  var csvPath = globals.globals.LOGPATH.replace(/\.[^/.]+$/, "")+date+'.csv';
   fs.writeFile(csvPath, writeStr, function(err) {
     if (err) {
       return console.log(err);
@@ -284,10 +284,10 @@ function xlsToTempTable() {
         function writeLog(newLine){
           var date = new Date();
           date = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
-          var csvPath = globals.globals.EXCELPATH.replace(/\.[^/.]+$/, "")+date+'.csv';
+          var csvPath = globals.globals.LOGPATH.replace(/\.[^/.]+$/, "")+date+'.csv';
           var logPath = csvPath.replace(/\.[^/.]+$/, "")+'.txt'
           newLine+='\n';
-          fs.appendFile(path.resolve('xls_csv', logPath), newLine, function (err) {
+          fs.appendFile(path.resolve('log', logPath), newLine, function (err) {
             if (err) throw err;
           });
         }
