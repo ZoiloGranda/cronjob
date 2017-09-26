@@ -1,6 +1,0 @@
-Running task every 24 hours
-Converted CSV file /Users/mugiwara/Workspace/agence/cron-job/log/AOG_WP_V32017-9-26.csv
-Droped Table tempTable
-Created new Table tempTable
-Data loaded successfully into table tempTable
-Data loaded into table maintenix successfully

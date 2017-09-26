@@ -1,4 +1,5 @@
 .env
+log
 ################################################
 # Dependencies
 node_modules
