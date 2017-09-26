@@ -1,0 +1,1 @@
+-- here script sql to create table "maintenix" 
