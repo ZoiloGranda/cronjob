@@ -2,9 +2,9 @@ var _ = require('lodash');
 var path = require('path');
 var globals = require('./globals.js');
 var mysqlcon = require('./config/database.js').mysqlConnection();
-var xlsx = require('node-xlsx');
 var fs = require('fs');
 var cron = require('node-cron');
+var XLSX = require('xlsx');
 
 console.log('Starting CronJob...');
 console.log('Running task every 20 seconds');
@@ -42,29 +42,22 @@ function xlsToTempTable() {
       writeLog('Created new Table tempTable');
     }
   })
-  var obj = xlsx.parse(globals.globals.EXCELPATH);
-  var rows = [];
-  var writeStr = "";
-  for (var i = 0; i < obj.length; i++) {
-    var sheet = obj[i];
-    for (var j = 0; j < sheet['data'].length; j++) {
-      rows.push(sheet['data'][j]);
-    }
-  }
-  for (var i = 0; i < rows.length; i++) {
-    writeStr += rows[i].join(",") + "\n";
-  }
+  var workbook = XLSX.readFile(globals.EXCELPATH);
+  console.log('Reading Excel file from path '+ globals.EXCELPATH);
+  writeLog('Reading Excel file from path '+ globals.EXCELPATH);
   var date = new Date();
   date = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
-  var csvPath = globals.globals.LOGPATH.replace(/\.[^/.]+$/, "")+date+'.csv';
-  fs.writeFile(csvPath, writeStr, function(err) {
-    if (err) {
-      writeLog('Error writing csv file \n'+err.stack+'\n >>>>>> END ERROR <<<<<<');
-      console.log(err);
-    }
+  var csvPath = globals.LOGPATH.replace(/\.[^/.]+$/, "")+date+'.csv';
+  var stream = XLSX.stream.to_csv(workbook.Sheets['Sheet 1']);
+  stream.pipe(fs.createWriteStream(csvPath));
+  stream._readableState.pipes.on('error', function (error) {
+    writeLog('Error writing csv file \n'+error.stack+'\n >>>>>> END ERROR <<<<<<');
+    console.trace(error);
+  })
+  stream.on('end', function () {
     console.log('Converted CSV file '+csvPath);
     writeLog('Converted CSV file '+csvPath);
-  });
+  })
   var queryLoadCSV = 'LOAD DATA LOCAL INFILE \''+csvPath+'\' INTO TABLE tempTable FIELDS TERMINATED BY \',\' ENCLOSED BY \'"\' LINES TERMINATED BY \'\n\' IGNORE 1 LINES';
   mysqlcon.query(queryLoadCSV, function (error, results, fields) {
     if (error) {
@@ -141,7 +134,7 @@ function tempTableToMaintenix() {
     var date = new Date();
     date = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
     newLine+='\n';
-    fs.appendFile(path.resolve('log', globals.globals.LOGPATH+date+'.txt'), newLine, function (err) {
+    fs.appendFile(path.resolve('log', globals.LOGPATH+date+'.txt'), newLine, function (err) {
       if (err) {
         console.trace(err);
       };
