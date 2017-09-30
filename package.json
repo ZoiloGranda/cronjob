@@ -14,12 +14,12 @@
     "xlsx": "^0.11.4"
   },
   "scripts": {
-    "start": "node job.js"
+    "start": "node app.js"
   },
   "engines": {
     "node": "0.12.3"
   },
-  "main": "job.js",
+  "main": "app.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/anonymous node/sails user/aog_system.git"
