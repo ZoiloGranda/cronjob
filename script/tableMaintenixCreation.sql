@@ -1,0 +1,29 @@
+
+# Dump of table maintenix
+# ------------------------------------------------------------
+
+CREATE TABLE `maintenix` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `AC` varchar(100) DEFAULT NULL,
+  `LOCATION` varchar(100) DEFAULT NULL,
+  `PART_REQUEST` varchar(100) DEFAULT NULL,
+  `PART_REQUEST_STATUS` varchar(100) DEFAULT NULL,
+  `PRIORITY_CD` varchar(100) DEFAULT NULL,
+  `PART_NO` varchar(100) DEFAULT NULL,
+  `QTY_UNIT_CD` varchar(100) DEFAULT NULL,
+  `PART_TYPE_CD` varchar(100) DEFAULT NULL,
+  `PART_USE_CD` varchar(100) DEFAULT NULL,
+  `INV_CLASS_CD` varchar(100) DEFAULT NULL,
+  `TASK_BARCODE` varchar(100) DEFAULT NULL,
+  `TASK_NAME` varchar(100) DEFAULT NULL,
+  `TASK_STATUS` varchar(100) DEFAULT NULL,
+  `WP_BARCODE` varchar(100) DEFAULT NULL,
+  `WP_NAME` varchar(100) DEFAULT NULL,
+  `WP_STATUS` varchar(100) DEFAULT NULL,
+  `WORK_TYPE_CD` varchar(100) DEFAULT NULL,
+  `REQ_QT` double DEFAULT NULL,
+  `REQUEST_CREATION` varchar(100) DEFAULT NULL,
+  `TASK_CREATION` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `U_request` (`AC`,`TASK_BARCODE`,`PART_REQUEST`,`REQUEST_CREATION`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
